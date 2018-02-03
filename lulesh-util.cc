@@ -40,6 +40,7 @@ static void PrintCommandLineOptions(char *execname, int myRank)
       printf(" -f <numfiles>   : Number of files to split viz dump into (def: (np+10)/9)\n");
       printf(" -p              : Print out progress\n");
       printf(" -v              : Output viz file (requires compiling with -DVIZ_MESH\n");
+      printf(" -x <script>     : ParaView analysis script (requires compiling with -DVIZ_CATALYST)\n");
       printf(" -h              : This message\n");
       printf("\n\n");
    }
@@ -147,6 +148,15 @@ void ParseCommandLineOptions(int argc, char *argv[],
             ParseError("Use of -v requires compiling with -DVIZ_MESH\n", myRank);
 #endif
             i++;
+         }
+         /* -s */
+         else if (strcmp(argv[i], "-x") == 0) {
+#if VIZ_CATALYST
+             opts->scripts.push_back(argv[i+1]);
+#else
+             ParseError("Use of -x requires compiling with Catalyst support.", myRank);
+#endif
+            i+=2;
          }
          /* -h */
          else if (strcmp(argv[i], "-h") == 0) {

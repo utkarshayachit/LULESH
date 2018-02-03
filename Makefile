@@ -17,7 +17,8 @@ SOURCES2.0 = \
 	lulesh-comm.cc \
 	lulesh-viz.cc \
 	lulesh-util.cc \
-	lulesh-init.cc
+	lulesh-init.cc \
+	lulesh-catalyst.cc
 OBJECTS2.0 = $(SOURCES2.0:.cc=.o)
 
 #Default build suggestions with OpenMP for g++
@@ -42,15 +43,22 @@ LDFLAGS = -g -O3 -fopenmp
 #CXXFLAGS = -g -DVIZ_MESH -I${SILO_INCDIR} -Wall -Wno-pragmas
 #LDFLAGS = -g -L${SILO_LIBDIR} -Wl,-rpath -Wl,${SILO_LIBDIR} -lsiloh5 -lhdf5
 
+
+# for Catalyst
+# Set CATALYST_ROOT to the install prefix of the Catalyst install
+# CATALYST_ROOT=/tmp/catalyst-install
+CATALYST_CXXFLAGS = -DVIZ_CATALYST=1 -I$(CATALYST_ROOT)/include/catalyst-2.0/
+CATALYST_LDFLAGS = -L$(CATALYST_ROOT)/lib -lcatalyst
+
 .cc.o: lulesh.h
 	@echo "Building $<"
-	$(CXX) -c $(CXXFLAGS) -o $@  $<
+	$(CXX) -c $(CXXFLAGS) $(CATALYST_CXXFLAGS) -o $@  $<
 
 all: $(LULESH_EXEC)
 
 lulesh2.0: $(OBJECTS2.0)
 	@echo "Linking"
-	$(CXX) $(OBJECTS2.0) $(LDFLAGS) -lm -o $@
+	$(CXX) $(OBJECTS2.0) $(LDFLAGS) $(CATALYST_LDFLAGS) -lm -o $@
 
 clean:
 	/bin/rm -f *.o *~ $(OBJECTS) $(LULESH_EXEC)

@@ -12,6 +12,29 @@
 #include <cstdlib>
 #include "lulesh.h"
 
+template <typename T>
+static void _addField(conduit_node* node, const std::string& name, const char* association, T& field)
+{
+  conduit_node_set_path_char8_str(node, ("fields/" + name + "/association").c_str(), association);
+  conduit_node_set_path_char8_str(node, ("fields/" + name + "/topology").c_str(), "mesh");
+  conduit_node_set_path_external_float64_ptr(node, ("fields/" + name + "/values").c_str(),
+    &field.front(), field.size());
+}
+
+template <typename T>
+static void _addField(conduit_node* node, const std::string& name, const char* association,
+    T& fx, T& fy, T& fz)
+{
+  conduit_node_set_path_char8_str(node, ("fields/" + name + "/association").c_str(), association);
+  conduit_node_set_path_char8_str(node, ("fields/" + name + "/topology").c_str(), "mesh");
+  conduit_node_set_path_external_float64_ptr(node, ("fields/" + name + "/values/u").c_str(),
+    &fx.front(), fx.size());
+  conduit_node_set_path_external_float64_ptr(node, ("fields/" + name + "/values/v").c_str(),
+    &fy.front(), fy.size());
+  conduit_node_set_path_external_float64_ptr(node, ("fields/" + name + "/values/w").c_str(),
+    &fz.front(), fz.size());
+}
+
 /////////////////////////////////////////////////////////////////////
 Domain::Domain(Int_t numRanks, Index_t colLoc,
                Index_t rowLoc, Index_t planeLoc,
@@ -181,8 +204,41 @@ Domain::Domain(Int_t numRanks, Index_t colLoc,
    //set initial deltatime base on analytic CFL calculation
    deltatime() = (Real_t(.5)*cbrt(volo(0)))/sqrt(Real_t(2.0)*einit);
 
+#if VIZ_CATALYST
+	 m_node = conduit_node_create();
+	 conduit_node_set_path_char8_str(m_node, "coordsets/coords/type", "explicit");
+	 conduit_node_set_path_external_float64_ptr(m_node,
+			 "coordsets/coords/values/x", &m_x.front(), m_x.size());
+	 conduit_node_set_path_external_float64_ptr(m_node,
+			 "coordsets/coords/values/y", &m_y.front(), m_y.size());
+	 conduit_node_set_path_external_float64_ptr(m_node,
+			 "coordsets/coords/values/z", &m_z.front(), m_z.size());
+
+	 conduit_node_set_path_char8_str(m_node, "topologies/mesh/type", "structured");
+	 conduit_node_set_path_char8_str(m_node, "topologies/mesh/coordset", "coords");
+	 conduit_node_set_path_int64(m_node, "topologies/mesh/elements/dims/i", nx);
+	 conduit_node_set_path_int64(m_node, "topologies/mesh/elements/dims/j", nx);
+	 conduit_node_set_path_int64(m_node, "topologies/mesh/elements/dims/k", nx);
+
+   _addField(m_node, "e", "element", m_e);
+   _addField(m_node, "p", "element", m_p);
+   _addField(m_node, "q", "element", m_q);
+   _addField(m_node, "v", "element", m_v);
+   _addField(m_node, "ss", "element", m_ss);
+   _addField(m_node, "elemMass", "element", m_elemMass);
+   _addField(m_node, "nodalMass", "vertex", m_nodalMass);
+   _addField(m_node, "velocity", "vertex", m_xd, m_yd, m_zd);
+   _addField(m_node, "acceleration", "vertex", m_xdd, m_ydd, m_zdd);
+   _addField(m_node, "force", "vertex", m_fx, m_fy, m_fz);
+#endif
 } // End constructor
 
+Domain::~Domain()
+{
+#if VIZ_CATALYST
+	conduit_node_destroy(m_node);
+#endif
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 void

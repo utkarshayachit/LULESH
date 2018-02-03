@@ -2741,6 +2741,7 @@ int main(int argc, char *argv[])
    locDom = new Domain(numRanks, col, row, plane, opts.nx,
                        side, opts.numReg, opts.balance, opts.cost) ;
 
+	 InitializeCatalyst(opts);
 
 #if USE_MPI   
    fieldData = &Domain::nodalMass ;
@@ -2777,6 +2778,8 @@ int main(int argc, char *argv[])
          printf("cycle = %d, time = %e, dt=%e\n",
                 locDom->cycle(), double(locDom->time()), double(locDom->deltatime()) ) ;
       }
+
+			ExecuteCatalyst(*locDom);
    }
 
    // Use reduced max elapsed time
@@ -2804,6 +2807,8 @@ int main(int argc, char *argv[])
    if ((myRank == 0) && (opts.quiet == 0)) {
       VerifyAndWriteFinalOutput(elapsed_timeG, *locDom, opts.nx, numRanks);
    }
+
+	 FinalizeCatalyst();
 
 #if USE_MPI
    MPI_Finalize() ;

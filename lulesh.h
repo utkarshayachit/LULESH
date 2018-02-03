@@ -1,7 +1,13 @@
+#ifndef lulesh_h
+#define lulesh_h
+
 #if !defined(USE_MPI)
 # error "You should specify USE_MPI=0 or USE_MPI=1 on the compile line"
 #endif
 
+#if VIZ_CATALYST
+#include <catalyst.h>
+#endif
 
 // OpenMP will be compiled in if this flag is set to 1 AND the compiler beging
 // used supports it (i.e. the _OPENMP symbol is defined)
@@ -132,6 +138,8 @@ class Domain {
    Domain(Int_t numRanks, Index_t colLoc,
           Index_t rowLoc, Index_t planeLoc,
           Index_t nx, Int_t tp, Int_t nr, Int_t balance, Int_t cost);
+
+	 ~Domain();
 
    //
    // ALLOCATION
@@ -413,6 +421,9 @@ class Domain {
    MPI_Request sendRequest[26] ; // 6 faces + 12 edges + 8 corners 
 #endif
 
+#if VIZ_CATALYST
+	 conduit_node* node() { return m_node; }
+#endif
   private:
 
    void BuildMesh(Int_t nx, Int_t edgeNodes, Int_t edgeElems);
@@ -563,6 +574,9 @@ class Domain {
    Index_t m_colMin, m_colMax;
    Index_t m_planeMin, m_planeMax ;
 
+#if VIZ_CATALYST
+	 conduit_node* m_node;
+#endif
 } ;
 
 typedef Real_t &(Domain::* Domain_member )(Index_t) ;
@@ -577,6 +591,7 @@ struct cmdLineOpts {
    Int_t viz; // -v 
    Int_t cost; // -c
    Int_t balance; // -b
+   std::vector<std::string> scripts; // -x
 };
 
 
@@ -614,3 +629,10 @@ void CommMonoQ(Domain& domain);
 // lulesh-init
 void InitMeshDecomp(Int_t numRanks, Int_t myRank,
                     Int_t *col, Int_t *row, Int_t *plane, Int_t *side);
+
+// lulest-catalyst
+void InitializeCatalyst(const cmdLineOpts& opts);
+void ExecuteCatalyst(Domain& locDom);
+void FinalizeCatalyst();
+
+#endif//  lulesh_h
