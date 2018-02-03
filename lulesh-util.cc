@@ -6,6 +6,7 @@
 #include <mpi.h>
 #endif
 #include "lulesh.h"
+#include <string>
 
 /* Helper function for converting strings to ints, with error checking */
 int StrToInt(const char *token, int *retVal)
@@ -39,7 +40,8 @@ static void PrintCommandLineOptions(char *execname, int myRank)
       printf(" -c <cost>       : Extra cost of more expensive regions (def: 1)\n");
       printf(" -f <numfiles>   : Number of files to split viz dump into (def: (np+10)/9)\n");
       printf(" -p              : Print out progress\n");
-      printf(" -v              : Output viz file (requires compiling with -DVIZ_MESH\n");
+      printf(" -v              : Output viz file (requires compiling with -DVIZ_MESH)\n");
+      printf(" --script <name> : execute ParaView Catalyst script (requires -DVIZ_CATALYST)\n");
       printf(" -h              : This message\n");
       printf("\n\n");
    }
@@ -156,6 +158,15 @@ void ParseCommandLineOptions(int argc, char *argv[],
 #else
             exit(0);
 #endif
+         }
+         /* --script */
+         else if (strcmp(argv[i], "--script") == 0) {
+#if defined(VIZ_CATALYST)
+             opts->scripts.push_back(argv[i+1]);
+#else
+             ParseError("Use of --script requires compiling with Catalyst support.", myRank);
+#endif
+            i+=2;
          }
          else {
             char msg[80];

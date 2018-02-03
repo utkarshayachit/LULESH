@@ -161,7 +161,9 @@ Additional BSD Notice
 #endif
 
 #include "lulesh.h"
-
+#if defined(VIZ_CATALYST)
+#include "lulesh-catalyst.h"
+#endif
 
 /*********************************/
 /* Data structure implementation */
@@ -2702,7 +2704,7 @@ int main(int argc, char *argv[])
 #else
    numRanks = 1;
    myRank = 0;
-#endif   
+#endif
 
    /* Set defaults that can be overridden by command line opts */
    opts.its = 9999999;
@@ -2730,6 +2732,7 @@ int main(int argc, char *argv[])
       printf("To change the relative costs of regions, use -c <integer>.\n");
       printf("To print out progress, use -p\n");
       printf("To write an output file for VisIt, use -v\n");
+      printf("To run catalyst python script, use --script\n");
       printf("See help (-h) for more options\n\n");
    }
 
@@ -2741,6 +2744,9 @@ int main(int argc, char *argv[])
    locDom = new Domain(numRanks, col, row, plane, opts.nx,
                        side, opts.numReg, opts.balance, opts.cost) ;
 
+#if defined(VIZ_CATALYST)
+   adaptor::initialize(myRank, numRanks, opts.scripts);
+#endif
 
 #if USE_MPI   
    fieldData = &Domain::nodalMass ;
@@ -2777,6 +2783,10 @@ int main(int argc, char *argv[])
          printf("cycle = %d, time = %e, dt=%e\n",
                 locDom->cycle(), double(locDom->time()), double(locDom->deltatime()) ) ;
       }
+
+#if defined(VIZ_CATALYST)
+      adaptor::process(*locDom);
+#endif
    }
 
    // Use reduced max elapsed time
@@ -2804,6 +2814,10 @@ int main(int argc, char *argv[])
    if ((myRank == 0) && (opts.quiet == 0)) {
       VerifyAndWriteFinalOutput(elapsed_timeG, *locDom, opts.nx, numRanks);
    }
+
+#if defined(VIZ_CATALYST)
+   adaptor::finalize();
+#endif
 
 #if USE_MPI
    MPI_Finalize() ;
