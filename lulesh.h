@@ -1,3 +1,6 @@
+#ifndef lulesh_h
+#define lulesh_h
+
 #if !defined(USE_MPI)
 # error "You should specify USE_MPI=0 or USE_MPI=1 on the compile line"
 #endif
@@ -343,6 +346,33 @@ class Domain {
    Index_t *nodeElemCornerList(Index_t idx)
    { return &m_nodeElemCornerList[m_nodeElemStart[idx]] ; }
 
+	 // Accessors for internal storage (for in situ use-cases)
+	 Real_t* x() { return &m_x.front(); }
+	 Real_t* y() { return &m_y.front(); }
+	 Real_t* z() { return &m_z.front(); }
+	 Real_t* xd() { return &m_xd.front(); }
+	 Real_t* yd() { return &m_yd.front(); }
+	 Real_t* zd() { return &m_zd.front(); }
+	 Real_t* xdd() { return &m_xdd.front(); }
+	 Real_t* ydd() { return &m_ydd.front(); }
+	 Real_t* zdd() { return &m_zdd.front(); }
+	 Real_t* fx() { return &m_fx.front(); }
+	 Real_t* fy() { return &m_fy.front(); }
+	 Real_t* fz() { return &m_fz.front(); }
+	 Real_t* nodalMass() { return &m_nodalMass.front(); }
+	 Real_t* e() { return &m_e.front(); }
+	 Real_t* p() { return &m_p.front(); }
+	 Real_t* q() { return &m_q.front(); }
+	 Real_t* ql() { return &m_ql.front(); }
+	 Real_t* qq() { return &m_qq.front(); }
+	 Real_t* v() { return &m_v.front(); }
+	 Real_t* delv() { return &m_delv.front(); }
+	 Real_t* volo() { return &m_volo.front(); }
+	 Real_t* vdov() { return &m_vdov.front(); }
+	 Real_t* arealg() { return &m_arealg.front(); }
+	 Real_t* ss() { return &m_ss.front(); }
+	 Real_t* elemMass() { return &m_elemMass.front(); }
+
    // Parameters 
 
    // Cutoffs
@@ -577,6 +607,7 @@ struct cmdLineOpts {
    Int_t viz; // -v 
    Int_t cost; // -c
    Int_t balance; // -b
+	 std::vector<std::string> scripts; // --script
 };
 
 
@@ -614,3 +645,5 @@ void CommMonoQ(Domain& domain);
 // lulesh-init
 void InitMeshDecomp(Int_t numRanks, Int_t myRank,
                     Int_t *col, Int_t *row, Int_t *plane, Int_t *side);
+
+#endif//  lulesh_h
