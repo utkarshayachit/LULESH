@@ -84,3 +84,34 @@ Scripts
    This was exported using ParaView UI. The visualization pipeline was set up using the representative dataset
    generated using **savedata.py**. The script has been slighly modified to make it more readable and expose
    options to change output directory and write frequency at the top of the script.
+
+
+Using Docker (at ECP Alpine Tutorial)
+-------------------------------------
+
+To user prebuilt Docker container instead to run these scripts,
+
+1. Install [Docker](https://www.docker.com/get-docker)
+
+2. Pull the latest container image
+
+```
+> docker pull utkarshayachit/lulesh-catalyst
+```
+
+3. Run each of the demos. Please change `/tmp/results` to the location on your
+   disk where you want the outputs to be generated.
+
+```
+# generate representative data
+> docker run -v /tmp/results:/tmp/output -t utkarshayachit/lulesh-catalyst \
+        /tutorial/lulesh2.0 -p -i 10 --script /tutorial/scripts/savedata.py
+
+# generate surface color renderings
+> docker run -v /tmp/results:/tmp/output -t utkarshayachit/lulesh-catalyst \
+        /tutorial/lulesh2.0 -p --script /tutorial/scripts/surfacecolor.py
+
+# generate line plots
+> docker run -v /tmp/results:/tmp/output -t utkarshayachit/lulesh-catalyst \
+        /tutorial/lulesh2.0 -p --script /tutorial/scripts/lineplot.py
+```
